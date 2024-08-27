@@ -1,0 +1,7 @@
+{
+    "python.analysis.typeCheckingMode": "basic",
+    "eslint.validate": [
+        "typescript",
+        "javascript",
+    ]
+}
