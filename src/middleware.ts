@@ -1,42 +1,97 @@
-import type * as types from './Types'
-import * as express from 'express'
-import url from 'url'
+import type * as types from './Types';
+import * as express from 'express';
+import url from 'url';
+import { Emitter } from './Utils/Emitter';
+import { Fetch } from './Utils/Fetch';
 
-export class Middleware{
-    private static worker: Worker
-    constructor(){
-        Middleware.worker = new Worker(new URL('./Workers/JudgeWorker.ts', import.meta.url).href);
+export class Middleware {
+    private static worker: Worker;
+    private static userList: types.UserList[] = [];
+    private static pendingRequests: Array<(data: types.UserList[]) => void> = [];
+
+    constructor() {
+        // Initialize the worker
+        if (!Middleware.worker) {
+            Middleware.worker = new Worker(new URL('./Workers/JudgeWorker.ts', import.meta.url).href);
+
+            // Global error handling for the worker
+            Middleware.worker.onerror = (err: ErrorEvent) => {
+                console.error('Worker error:', err.message);
+            };
+
+            // Setup listener for worker messages
+            Middleware.worker.onmessage = (e: MessageEvent) => {
+                const [status, result] = e.data;
+
+                if (status === 'Finished') {
+                    Middleware.userList = result as types.UserList[];
+                    // Notify all pending requests
+                    Middleware.pendingRequests.forEach(callback => callback(Middleware.userList));
+                    Middleware.pendingRequests = [];
+                } else {
+                    console.error('Worker returned an unexpected response:', e.data);
+                }
+            };
+        }
+
+        // Setup listener for the 'Judged' event
+        Emitter.on('Judged', () => {
+            console.log('The judging process has finished. Data updated.');
+        });
     }
 
     public async handle(req: express.Request, res: express.Response){
-        const requestedUrl = String(url.parse(req.url)?.pathname)
-        switch (requestedUrl){
-            case '/Online': {
-                if (!Middleware.worker){
-                    console.log('Worker is undefined')
-                }
-                
-                Middleware.worker.onmessage = (e: MessageEvent) => {
-                    const data = e.data as types.UserList
-                    return res.status(200).json({
-                        "content-type": "application/json",
-                        "error": null,
-                        "message": "Operation finished successfuly",
-                        
+        const requestedUrl = String(url.parse(req.url)?.pathname);
 
-                    }).send(data)
+        switch (requestedUrl) {
+            case '/Online': {
+                if (global.API_Error !== null){
+                    return res.status(500).json(
+                        {
+                            "content-type": "application/json",
+                            "error": 500,
+                            "message": "Internal Server Error, unable to reach server API",
+                        }
+                    )
                 }
-                break
+                if (Middleware.userList.length === 0) {
+                    
+                    Middleware.pendingRequests.push((userList: types.UserList[]) => {
+                        if (!res.headersSent) {
+                            res.status(200).json({
+                                "content-type": "application/json",
+                                "error": null,
+                                "message": "Operation finished successfully",
+                                "userList": userList
+                            });
+                        }
+                    });
+
+                    Middleware.worker.postMessage({ message: 'Start' });
+                } else {
+                    if (!res.headersSent) {
+                        res.status(200).json({
+                            "content-type": "application/json",
+                            "error": null,
+                            "message": "Operation finished successfully",
+                            "userList": Middleware.userList
+                        });
+                    }
+                }
+                break;
             }
             default: {
-                res.status(404).json(
-                    {
+                if (!res.headersSent) {
+                    res.status(404).json({
                         "content-type": "application/json",
                         "error": "Not Found",
-                        "message": "The endpoint you have requested can not be found"
-                    }
-                )
+                        "message": "The endpoint you have requested cannot be found",
+                    });
+                }
+                break;
             }
         }
     }
+
 }
+

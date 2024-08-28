@@ -73,3 +73,6 @@ export declare interface Player{
 	}[];
   };
   
+declare global{
+	var API_Error: number | null
+}
