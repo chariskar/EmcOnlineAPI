@@ -49,10 +49,6 @@ export class Middleware {
             };
         }
 
-        // Setup listener for the 'Judged' event
-        Emitter.on('Judged', () => {
-            console.log('The judging process has finished. Data updated.');
-        });
     }
 
     public async handle(req: express.Request, res: express.Response){
