@@ -58,6 +58,7 @@ self.onmessage = async (event) => {
     } catch (error) {
         console.error('Error in worker:', error);
         self.postMessage({ error: 'Error fetching user data' });
+        global.lastUpdate = Math.floor(Date.now() / 1000)
     }
 };
 

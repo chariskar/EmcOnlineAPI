@@ -77,6 +77,7 @@ export class Middleware {
                                 "content-type": "application/json",
                                 "error": null,
                                 "message": "Operation finished successfully",
+                                "lastUpdate": global.lastUpdate,
                                 "userList": userList
                             });
                         }
@@ -89,6 +90,7 @@ export class Middleware {
                             "content-type": "application/json",
                             "error": null,
                             "message": "Operation finished successfully",
+                            "lastUpdate": global.lastUpdate,
                             "userList": Middleware.userList
                         });
                     }
