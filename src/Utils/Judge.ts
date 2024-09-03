@@ -14,19 +14,29 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/.  
 */
-import { Emitter } from "./Emitter";
-import type * as types from '../Types'
+import type * as types from '../Types/Types'
 import { Fetch } from "./Fetch";
 
 export class Judge {
-    public onlinePlayers: types.UserList[] | null
+    public onlinePlayers: types.UserList[]
     constructor() {
         this.onlinePlayers = []
-        const fetch = new Fetch()
-        let data = fetch.FetchUserData() as unknown as types.Player[]
+        if(!global.fetched){
+            new Fetch().FetchUserData().then(
+                (data)=>{
+                    if (data)
+                    this.Judge(data)
+                }
+            )
+            
+
+        } else {
+            this.Judge(global.fetched)
+        }           
         
-        
-        for (let i in data as types.Player[]){
+    }
+    private Judge(data: types.TemplateReturn[]){
+        for (let i in data as types.TemplateReturn[]){
             if (data){
                 if (data[Number(i)].status.isOnline){
                 
@@ -34,13 +44,15 @@ export class Judge {
                         name: data[Number(i)].name,
                         uuid: data[Number(i)].uuid
                     }
+                    if (!this.onlinePlayers){
+                        return
+                    }
                     this.onlinePlayers.push(player)
+                    
                     delete data[Number(i)]
                 }
                 Number(i)+1
             }
-            
         }
-        Emitter.emit('Judged')
     }
 }

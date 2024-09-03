@@ -19,10 +19,13 @@ import { Judge } from "../Utils/Judge";
 self.onmessage = (event: MessageEvent) => {
     const { data } = event;
 
-    if (data.message === 'Start') {
-        const judge = new Judge();
-        self.postMessage(['Finished', judge.onlinePlayers]);
-    } else {
-        self.postMessage(['Error', 'Incorrect message']);
+    const judge = new Judge();
+    if (!judge.onlinePlayers){
+        console.log('Online Players is null')
+        return
+    }else{
+    self.postMessage(judge.onlinePlayers);
+
     }
+   
 };

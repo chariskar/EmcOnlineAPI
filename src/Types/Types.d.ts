@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2024  chariskar
+    Copyright (C) 2024  chariskar
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,26 +19,9 @@ export declare interface UserList{
     uuid: string;
 }
 
-export declare interface Player{
+export interface TemplateReturn{
 	name: string;
 	uuid: string;
-	title: string | null;
-	surname: string | null;
-	formattedName: string;
-	about: string | null;
-	town: {
-	  	name: string | null;
-	  	uuid: string | null;
-	} | null;
-	nation: {
-		name: string | null;
-		uuid: string | null;
-	} | null;
-	timestamps: {
-		registered: number;
-		joinedTownAt: number | null;
-		lastOnline: number | null;
-	};
 	status: {
 		isOnline: boolean;
 		isNPC: boolean;
@@ -47,33 +30,22 @@ export declare interface Player{
 		hasTown: boolean;
 		hasNation: boolean;
 	};
-	stats: {
-		balance: number;
-		numFriends: number;
-	};
-	perms: {
-		build: boolean[];
-		destroy: boolean[];
-		switch: boolean[];
-		itemUse: boolean[];
-		flags: {
-	    	pvp: boolean;
-	    	explosion: boolean;
-	    	fire: boolean;
-	    	mobs: boolean;
-	  };
-	};
-	ranks: {
-		townRanks: string[];
-		nationRanks: string[];
-	};
-	friends: {
-		name: string;
-		uuid: string;
-	}[];
-  };
+}
+export interface Template{
+	name: booleam = true,
+	uuid: boolean = true,
+	status: boolean = true,
+	query: Array
+}
+export declare interface request{
+	processing: boolean;
+	finished: boolean
+	error: boolean
+}
   
 declare global{
-	var API_Error: number | null
-	var lastUpdate: number | void
+	var error: any | null
+	var lastUpdate: number | null
+	var OnlineUsers: UserList[] | null = null
+	var fetched: TemplateReturn[] | null = null
 }
