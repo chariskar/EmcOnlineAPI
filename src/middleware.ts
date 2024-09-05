@@ -17,59 +17,93 @@
 import type * as types from './Types/Types';
 import * as express from 'express';
 import { URL } from 'url';
-import { Fetch } from './Utils/Fetch';
 
 export class Middleware {
     private worker: Worker;
-    private static fetchInterval: number = 240_000; // 4 minutes in milliseconds
+    private static isFetching: boolean = false; // Control fetch status
+    private static minFetchDelay: number = 60_000; // Minimum delay between fetches (1 minute)
+    private static errorBackoffDelay: number = 300_000; // Delay on error or no users fetched (5 minutes)
+    private static fetchInterval: number = 240_000; // General fetch interval (4 minutes)
 
-    constructor(){
+    constructor() {
         this.worker = new Worker(new URL('../src/Workers/JudgeWorker.ts', import.meta.url).href);
-        this.runLoop()
+        this.startFetchingLoop();
     }
-    private async update() {
-        const lastUpdate: null | number = global.lastUpdate;
-        
-        
-        if (!lastUpdate || Date.now() - lastUpdate >= Middleware.fetchInterval) {
-    
+
+    private async fetchAndUpdate() {
+        if (Middleware.isFetching) {
+            console.log("Fetch already in progress. Skipping this request.");
+            return;
+        }
+
+        console.log("Fetching new data...");
+        Middleware.isFetching = true;
+
+        try {
             await new Promise<void>((resolve, reject) => {
-                this.worker.postMessage('');
-    
+                if (!global.fetched || global.fetched.length === 0) {
+                    console.log("User list is empty. Fetching user list...");
+                    this.worker.postMessage('');
+                } else {
+                    console.log("User list already exists. Skipping fetch.");
+                    Middleware.isFetching = false;
+                    return;
+                }
+
                 this.worker.onmessage = (e: MessageEvent) => {
                     const userList: types.UserList[] = e.data;
-                    global.OnlineUsers = userList;
-                    global.lastUpdate = Date.now(); 
-                    resolve();  
+                    if (userList && userList.length > 0) {
+                        global.OnlineUsers = userList;
+                        global.lastUpdate = Date.now();
+                        console.log('Online users updated:', global.OnlineUsers.length);
+                        setTimeout(() => {
+                            this.fetchAndUpdate();
+                        }, Middleware.minFetchDelay); // Throttle next fetch
+                    } else if (global.error){
+                        setTimeout(() => {
+                            this.fetchAndUpdate();
+                        }, Middleware.errorBackoffDelay);
+                    }else {
+                        setTimeout(() => {
+                            this.fetchAndUpdate();
+                        }, Middleware.errorBackoffDelay); // Backoff before retrying
+                    }
+                    Middleware.isFetching = false;
+                    resolve();
                 };
-    
+
                 this.worker.onerror = (error) => {
-                    reject(error); 
+                    console.error('Worker error:', error);
+                    Middleware.isFetching = false;
+                    setTimeout(() => {
+                        this.fetchAndUpdate();
+                    }, Middleware.errorBackoffDelay); // Backoff before retrying on error
+                    reject(error);
                 };
             });
-        }
-    }
-    
-    private async runLoop(){
-        while (true){
-            await this.update()
-            await Promise.resolve(new Promise(resolve => setTimeout(resolve, Middleware.fetchInterval)))
-            
+        } catch (error) {
+            console.error('Fetch failed:', error);
+            Middleware.isFetching = false;
+            setTimeout(() => {
+                this.fetchAndUpdate();
+            }, Middleware.errorBackoffDelay); // Backoff before retrying on failure
         }
     }
 
-    public async handle(req: express.Request, res: express.Response){
-        if (req.path == '/Online'){
-            return res.status(200).json(
-                {
-                    "OnlineUsers": global.OnlineUsers,
-                    "lastUpdate": global.lastUpdate,
-                    "OnlineUsersNum": global.OnlineUsers?.length
-                },
-            )
+    private startFetchingLoop() {
+        this.fetchAndUpdate(); // Start the first fetch
+    }
+
+    public async handle(req: express.Request, res: express.Response) {
+        if (req.path === '/Online') {
+            res.status(200).json({
+                "OnlineUsers": global.OnlineUsers || [],
+                "lastUpdate": global.lastUpdate || null,
+                "OnlineUsersNum": global.OnlineUsers?.length || 0,
+            });
+            global.OnlineUsers = null
         } else {
-            return res.status(404)
+            res.status(404).send('Not Found');
         }
     }
-    
 }

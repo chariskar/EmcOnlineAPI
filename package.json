@@ -7,14 +7,16 @@
     "@eslint/js": "^9.9.1",
     "@types/bun": "latest",
     "@types/express": "^4.17.21",
-    "@types/memory-": "^0.2.6",
-    "globals": "^15.9.0"
+    "globals": "^15.9.0",
+    "tsc": "^2.0.4"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.5.4"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "memory-": "^0.2.0"
+    "express": "^4.19.2"
+  },
+  "scripts": {
+    "run": "bun index.ts"
   }
 }

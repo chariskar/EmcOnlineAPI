@@ -18,7 +18,7 @@ import type * as types from '../Types/Types';
 
 export class Fetch {
     private static UserList: types.UserList[] = [];
-
+    private static UserData: types.UserList[] = []
     constructor() {}
 
     /**
@@ -47,7 +47,7 @@ export class Fetch {
                     console.error('Received data is too large');
                     return [];
                 }
-    
+                Fetch.UserList = data
                 return data;
             } else {
                 console.error('Expected JSON but got:', contentType);
@@ -72,22 +72,25 @@ export class Fetch {
                 console.error("Failed to fetch UserList.");
                 return; 
             }
-            Fetch.UserList = data;
+            Fetch.UserData = data;
+        
         }
         const data = this.startWorker(Fetch.UserList, chunkSize)as unknown as types.TemplateReturn[];
         return data
     }
     
-    private startWorker(userList: types.UserList[], chunkSize: number): types.TemplateReturn[]  | void {
+    private startWorker(userList: types.UserList[], chunkSize: number): void {
         try {
+            
+            console.log('Started Fetching at', Date.now());
             const worker = new Worker(new URL('../Workers/FetchWorker.ts', import.meta.url).href);
             worker.postMessage({ userList, chunkSize });
-            
+    
             worker.onmessage = (e: MessageEvent) => {
                 const data = e.data as types.TemplateReturn[];
-                global.lastUpdate = Date.now()
-                global.fetched = data
-                return data
+                global.lastUpdate = Date.now();
+                global.fetched = data;
+                console.log('Finished fetching at', Date.now());
             };
     
             worker.onerror = (error) => {
@@ -97,6 +100,7 @@ export class Fetch {
             console.error("Error creating worker:", error);
         }
     }
+    
     
     
 }

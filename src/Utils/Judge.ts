@@ -18,24 +18,23 @@ import type * as types from '../Types/Types'
 import { Fetch } from "./Fetch";
 
 export class Judge {
-    public onlinePlayers: types.UserList[]
+    public onlinePlayers: types.UserList[] = [];
+    
     constructor() {
-        this.onlinePlayers = []
-        if(!global.fetched){
-            new Fetch().FetchUserData().then(
-                (data)=>{
-                    if (data)
-                    this.Judge(data)
+        if (!global.fetched) {
+            new Fetch().FetchUserData().then((data) => {
+                if (data) {
+                    this.updateOnlinePlayers(data);
                 }
-            )
-            
-
+                global.fetched = null
+            });
         } else {
-            this.Judge(global.fetched)
-        }           
-        
+            this.updateOnlinePlayers(global.fetched);
+            global.fetched = null
+        }
     }
-    private Judge(data: types.TemplateReturn[]){
+
+    private updateOnlinePlayers(data: types.TemplateReturn[]): void {
         for (let i in data as types.TemplateReturn[]){
             if (data){
                 if (data[Number(i)].status.isOnline){
@@ -44,15 +43,12 @@ export class Judge {
                         name: data[Number(i)].name,
                         uuid: data[Number(i)].uuid
                     }
-                    if (!this.onlinePlayers){
-                        return
-                    }
                     this.onlinePlayers.push(player)
-                    
                     delete data[Number(i)]
                 }
                 Number(i)+1
             }
+            
         }
     }
 }
