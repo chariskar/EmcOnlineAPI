@@ -18,7 +18,6 @@ import type * as types from '../Types/Types';
 
 export class Fetch {
     private static UserList: types.UserList[] = [];
-    private static UserData: types.UserList[] = []
     constructor() {}
 
     /**
@@ -72,7 +71,6 @@ export class Fetch {
                 console.error("Failed to fetch UserList.");
                 return; 
             }
-            Fetch.UserData = data;
         
         }
         const data = this.startWorker(Fetch.UserList, chunkSize)as unknown as types.TemplateReturn[];

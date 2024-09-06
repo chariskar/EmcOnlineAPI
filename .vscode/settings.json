@@ -3,5 +3,6 @@
     "eslint.validate": [
         "typescript",
         "javascript",
-    ]
+    ],
+    "npm.packageManager": "bun"
 }

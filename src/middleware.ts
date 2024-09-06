@@ -20,10 +20,9 @@ import { URL } from 'url';
 
 export class Middleware {
     private worker: Worker;
-    private static isFetching: boolean = false; // Control fetch status
-    private static minFetchDelay: number = 60_000; // Minimum delay between fetches (1 minute)
-    private static errorBackoffDelay: number = 300_000; // Delay on error or no users fetched (5 minutes)
-    private static fetchInterval: number = 240_000; // General fetch interval (4 minutes)
+    private static isFetching: boolean = false;
+    private static minFetchDelay: number = 60_000; 
+    private static errorBackoffDelay: number = 300_000; 
 
     constructor() {
         this.worker = new Worker(new URL('../src/Workers/JudgeWorker.ts', import.meta.url).href);
@@ -58,7 +57,8 @@ export class Middleware {
                         console.log('Online users updated:', global.OnlineUsers.length);
                         setTimeout(() => {
                             this.fetchAndUpdate();
-                        }, Middleware.minFetchDelay); // Throttle next fetch
+
+                        }, Middleware.minFetchDelay); 
                     } else if (global.error){
                         setTimeout(() => {
                             this.fetchAndUpdate();
@@ -66,7 +66,7 @@ export class Middleware {
                     }else {
                         setTimeout(() => {
                             this.fetchAndUpdate();
-                        }, Middleware.errorBackoffDelay); // Backoff before retrying
+                        }, Middleware.errorBackoffDelay);
                     }
                     Middleware.isFetching = false;
                     resolve();
@@ -77,7 +77,7 @@ export class Middleware {
                     Middleware.isFetching = false;
                     setTimeout(() => {
                         this.fetchAndUpdate();
-                    }, Middleware.errorBackoffDelay); // Backoff before retrying on error
+                    }, Middleware.errorBackoffDelay); 
                     reject(error);
                 };
             });
@@ -86,12 +86,12 @@ export class Middleware {
             Middleware.isFetching = false;
             setTimeout(() => {
                 this.fetchAndUpdate();
-            }, Middleware.errorBackoffDelay); // Backoff before retrying on failure
+            }, Middleware.errorBackoffDelay); 
         }
     }
 
     private startFetchingLoop() {
-        this.fetchAndUpdate(); // Start the first fetch
+        this.fetchAndUpdate(); 
     }
 
     public async handle(req: express.Request, res: express.Response) {
@@ -101,7 +101,7 @@ export class Middleware {
                 "lastUpdate": global.lastUpdate || null,
                 "OnlineUsersNum": global.OnlineUsers?.length || 0,
             });
-            global.OnlineUsers = null
+            
         } else {
             res.status(404).send('Not Found');
         }
