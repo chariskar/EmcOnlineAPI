@@ -27,28 +27,22 @@ export class Judge {
                     this.updateOnlinePlayers(data);
                 }
                 global.fetched = null
+                global.OnlineUsers = this.onlinePlayers
+                data = []
             });
         } else {
             this.updateOnlinePlayers(global.fetched);
             global.fetched = null
+            global.OnlineUsers = this.onlinePlayers
         }
     }
 
     private updateOnlinePlayers(data: types.TemplateReturn[]): void {
-        for (let i in data as types.TemplateReturn[]){
-            if (data){
-                if (data[Number(i)].status.isOnline){
-                
-                    const player: types.UserList = {
-                        name: data[Number(i)].name,
-                        uuid: data[Number(i)].uuid
-                    }
-                    this.onlinePlayers.push(player)
-                    delete data[Number(i)]
-                }
-                Number(i)+1
-            }
-            
-        }
+        this.onlinePlayers = data.filter(playerData => playerData.status.isOnline)
+        .map(playerData => ({
+            name: playerData.name,
+            uuid: playerData.uuid
+        }));
+
     }
 }
