@@ -15,7 +15,6 @@
     along with this program.  If not, see http://www.gnu.org/licenses/.  
 */
 import express from 'express'
-import * as path from 'path'
 import { Middleware } from './src/middleware'
 
 

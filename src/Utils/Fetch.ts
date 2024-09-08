@@ -14,90 +14,90 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/.  
 */
-import type * as types from '../Types/Types';
+import type * as types from '../Types/Types'
 
 export class Fetch {
-    private static UserList: types.UserList[] = [];
-    constructor() {}
+	private static UserList: types.UserList[] = []
+	constructor() {}
 
-    /**
+	/**
      * Fetches the list of users (not their detailed data).
      */
-    public static async FetchUserList(): Promise<types.UserList[]> {
-        try {
-            const response = await fetch('https://api.earthmc.net/v3/aurora/players');
+	public static async FetchUserList(): Promise<types.UserList[]> {
+		try {
+			const response = await fetch('https://api.earthmc.net/v3/aurora/players')
     
-            if (!response.ok) {
-                console.error('API response error:', response.status);
-                return [];
-            }
+			if (!response.ok) {
+				console.error('API response error:', response.status)
+				return []
+			}
     
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                const data = await response.json();
+			const contentType = response.headers.get('content-type')
+			if (contentType && contentType.includes('application/json')) {
+				const data = await response.json()
     
-                if (!Array.isArray(data)) {
-                    console.error('Expected an array but got:', typeof data);
-                    return [];
-                }
+				if (!Array.isArray(data)) {
+					console.error('Expected an array but got:', typeof data)
+					return []
+				}
     
-                // Check the length of data to handle large responses
-                if (JSON.stringify(data).length > 10_000_000) { // Example limit: 10MB
-                    console.error('Received data is too large');
-                    return [];
-                }
-                Fetch.UserList = data
-                return data;
-            } else {
-                console.error('Expected JSON but got:', contentType);
-                return [];
-            }
-        } catch (error) {
-            console.error('Unable to reach API:', error);
-            return [];
-        }
-    }
+				// Check the length of data to handle large responses
+				if (JSON.stringify(data).length > 10_000_000) { // Example limit: 10MB
+					console.error('Received data is too large')
+					return []
+				}
+				Fetch.UserList = data
+				return data
+			} else {
+				console.error('Expected JSON but got:', contentType)
+				return []
+			}
+		} catch (error) {
+			console.error('Unable to reach API:', error)
+			return []
+		}
+	}
     
-    /**
+	/**
      * Fetches detailed data for each user.
      */
-    public async FetchUserData(): Promise<void | types.TemplateReturn[]> {
-        const chunkSize = 100;
+	public async FetchUserData(): Promise<void | types.TemplateReturn[]> {
+		const chunkSize = 100
     
-        if (Fetch.UserList.length === 0) {
-            console.log("Fetching user list because it's empty.");
-            const data = await Fetch.FetchUserList();
-            if (data.length === 0) {
-                console.error("Failed to fetch UserList.");
-                return; 
-            }
+		if (Fetch.UserList.length === 0) {
+			console.log('Fetching user list because it\'s empty.')
+			const data = await Fetch.FetchUserList()
+			if (data.length === 0) {
+				console.error('Failed to fetch UserList.')
+				return 
+			}
         
-        }
-        const data = this.startWorker(Fetch.UserList, chunkSize)as unknown as types.TemplateReturn[];
-        return data
-    }
+		}
+		const data = this.startWorker(Fetch.UserList, chunkSize)as unknown as types.TemplateReturn[]
+		return data
+	}
     
-    private startWorker(userList: types.UserList[], chunkSize: number): void {
-        try {
+	private startWorker(userList: types.UserList[], chunkSize: number): void {
+		try {
             
-            console.log('Started Fetching at', Date.now());
-            const worker = new Worker(new URL('../Workers/FetchWorker.ts', import.meta.url).href);
-            worker.postMessage({ userList, chunkSize });
+			console.log('Started Fetching at', Date.now())
+			const worker = new Worker(new URL('../Workers/FetchWorker.ts', import.meta.url).href)
+			worker.postMessage({ userList, chunkSize })
     
-            worker.onmessage = (e: MessageEvent) => {
-                const data = e.data as types.TemplateReturn[];
-                global.lastUpdate = Date.now();
-                global.fetched = data;
-                console.log('Finished fetching at', Date.now());
-            };
+			worker.onmessage = (e: MessageEvent) => {
+				const data = e.data as types.TemplateReturn[]
+				global.lastUpdate = Date.now()
+				global.fetched = data
+				console.log('Finished fetching at', Date.now())
+			}
     
-            worker.onerror = (error) => {
-                console.error("Error fetching user data:", error);
-            };
-        } catch (error) {
-            console.error("Error creating worker:", error);
-        }
-    }
+			worker.onerror = (error) => {
+				console.error('Error fetching user data:', error)
+			}
+		} catch (error) {
+			console.error('Error creating worker:', error)
+		}
+	}
     
     
     

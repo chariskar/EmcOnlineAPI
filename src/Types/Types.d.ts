@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 /*
     Copyright (C) 2024  chariskar
 
@@ -32,9 +33,9 @@ export interface TemplateReturn{
 	};
 }
 export interface Template{
-	name: booleam = true,
-	uuid: boolean = true,
-	status: boolean = true,
+	name: booleam ,
+	uuid: boolean ,
+	status: boolean ,
 	query: Array
 }
 export declare interface request{

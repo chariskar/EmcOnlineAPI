@@ -14,18 +14,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see http://www.gnu.org/licenses/.  
 */
-import { Judge } from "../Utils/Judge";
+import { Judge } from '../Utils/Judge'
 
-self.onmessage = (event: MessageEvent) => {
-    const { data } = event;
+self.onmessage = () => {
 
-    const judge = new Judge();
-    if (!judge.onlinePlayers){
-        console.log('Online Players is null')
-        return
-    }else{
-    self.postMessage(judge.onlinePlayers);
+	const judge = new Judge()
+	if (!judge.onlinePlayers){
+		console.log('Online Players is null')
+		return
+	}else{
+		self.postMessage(judge.onlinePlayers)
 
-    }
+	}
    
-};
+}

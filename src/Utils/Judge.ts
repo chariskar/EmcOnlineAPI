@@ -15,34 +15,34 @@
     along with this program.  If not, see http://www.gnu.org/licenses/.  
 */
 import type * as types from '../Types/Types'
-import { Fetch } from "./Fetch";
+import { Fetch } from './Fetch'
 
 export class Judge {
-    public onlinePlayers: types.UserList[] = [];
+	public onlinePlayers: types.UserList[] = []
     
-    constructor() {
-        if (!global.fetched) {
-            new Fetch().FetchUserData().then((data) => {
-                if (data) {
-                    this.updateOnlinePlayers(data);
-                }
-                global.fetched = null
-                global.OnlineUsers = this.onlinePlayers
-                data = []
-            });
-        } else {
-            this.updateOnlinePlayers(global.fetched);
-            global.fetched = null
-            global.OnlineUsers = this.onlinePlayers
-        }
-    }
+	constructor() {
+		if (!global.fetched) {
+			new Fetch().FetchUserData().then((data) => {
+				if (data) {
+					this.updateOnlinePlayers(data)
+				}
+				global.fetched = null
+				global.OnlineUsers = this.onlinePlayers
+				data = []
+			})
+		} else {
+			this.updateOnlinePlayers(global.fetched)
+			global.fetched = null
+			global.OnlineUsers = this.onlinePlayers
+		}
+	}
 
-    private updateOnlinePlayers(data: types.TemplateReturn[]): void {
-        this.onlinePlayers = data.filter(playerData => playerData.status.isOnline)
-        .map(playerData => ({
-            name: playerData.name,
-            uuid: playerData.uuid
-        }));
+	private updateOnlinePlayers(data: types.TemplateReturn[]): void {
+		this.onlinePlayers = data.filter(playerData => playerData.status.isOnline)
+			.map(playerData => ({
+				name: playerData.name,
+				uuid: playerData.uuid
+			}))
 
-    }
+	}
 }
